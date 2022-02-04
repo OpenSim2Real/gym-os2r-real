@@ -30,3 +30,12 @@
 *.exe
 *.out
 *.app
+
+.tags
+.tags1
+.cache
+.ccls-cache
+
+compile_commands.json
+build
+.vscode
