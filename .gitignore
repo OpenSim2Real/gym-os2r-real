@@ -39,3 +39,32 @@
 compile_commands.json
 build
 .vscode
+
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+**/__pycache__
+
+.cache
+
+*.tags
+*.tags1
+
+# C extensions
+*.so
+
+# Distribution / packaging
+bin/
+build/
+develop-eggs/
+dist/
+eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
