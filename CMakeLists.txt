@@ -32,6 +32,8 @@ endif()
 set(PYTHON_INSTALL_PREFIX "${PYTHON_INSTALL_PREFIX}" CACHE STRING "Set the python install prefix to empty string. Only install if it is set as a cmake arg.")
 mark_as_advanced(PYTHON_INSTALL_PREFIX)
 
+add_subdirectory(cpp_inference)
+
 install(DIRECTORY "./gym_os2r_real" DESTINATION "${PYTHON_INSTALL_PREFIX}")
 
 option(BUILD_DOCS "Enable the configuration and building of the documentation." FALSE)

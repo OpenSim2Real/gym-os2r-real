@@ -1,11 +1,14 @@
 
-#include <math.h>
-#include <string>
-#include <torch/script.h>
-#include <monopod_sdk/monopod.hpp>
-
-#include <signal.h>
 #include <atomic>
+#include <boost/range/join.hpp>
+#include <iostream>
+#include <math.h>
+#include <signal.h>
+#include <string>
+#include <vector>
+
+#include <monopod_sdk/monopod.hpp>
+// #include <torch/script.h>
 
 /**
  * @brief This boolean is here to kill cleanly the application upon ctrl+c
@@ -17,85 +20,86 @@ std::atomic_bool StopDemos(false);
  *
  * @param s
  */
-void my_handler(int)
-{
-    StopDemos = true;
-}
+void my_handler(int) { StopDemos = true; }
 
-std::vector<double> merge (std::vector<double> a, std::vector<double> b)
-{
-    std::vector<double> result;
+int main(int argc, char *argv[]) {
+  // make sure we catch the ctrl+c signal to kill the application properly.
+  struct sigaction sigIntHandler;
+  sigIntHandler.sa_handler = my_handler;
+  sigemptyset(&sigIntHandler.sa_mask);
+  sigIntHandler.sa_flags = 0;
+  sigaction(SIGINT, &sigIntHandler, NULL);
+  StopDemos = false;
 
-    auto v1 = a.begin();
-    auto v2 = b.begin();
+  // Make sure there is at least one argument.
+  if (argc != 3) {
+    std::cerr << "Expecting Script Usage: \n"
+                 "\t exec_inference [Model Path] [Mode] \n\n"
+                 "\t Model Path - Absolute Path to pytorch model. \n\n"
+                 "\t Mode - Available monopod modes 'fixed', 'fixed_connector',"
+                 " 'free', 'motor_board'."
+              << std::endl;
+    exit(-1);
+  }
 
-    while (v1 != a.end() && v2 != b.end ())
-    {
-        result.push_back(*v1);
-        result.push_back(*v2);
-        ++v1;
-        ++v2;
-    }
-    return result;
-}
+  // // Load policy network
+  //
+  // std::string path_to_network = argv[1] torch::jit::script::Module
+  // policy_net; try {
+  //   policy_net = torch::jit::load(path_to_network);
+  // } catch (const c10::Error &e) {
+  //   std::cerr << "error loading the model from path: " << srgc[1] <<
+  //   std::endl; exit(-1);
+  // }
 
-int main(int, char**)
-{
-    // make sure we catch the ctrl+c signal to kill the application properly.
-    struct sigaction sigIntHandler;
-    sigIntHandler.sa_handler = my_handler;
-    sigemptyset(&sigIntHandler.sa_mask);
-    sigIntHandler.sa_flags = 0;
-    sigaction(SIGINT, &sigIntHandler, NULL);
-    StopDemos = false;
+  std::string mode_name = argv[2];
+  transform(mode_name.begin(), mode_name.end(), mode_name.begin(), toupper);
 
-    // Load policy network
-    std::string path_to_network = "/home/capstone/capstone/rl-algorithm-exploration/exported_policy_net.pt"; //ENTER PATH HERE
-    torch::jit::script::Module policy_net;
-    try
-    {
-        policy_net = torch::jit::load(path_to_network);
-    }
-    catch (const c10::Error& e)
-    {
-        std::cerr << "error loading the model\n";
-        return -1;
-    }
+  std::unordered_map<std::string, monopod_drivers::Mode> get_mode = {
+      {"FREE", monopod_drivers::Mode::FREE},
+      {"FIXED_CONNECTOR", monopod_drivers::Mode::FIXED_CONNECTOR},
+      {"FIXED", monopod_drivers::Mode::FIXED},
+      {"MOTOR_BOARD", monopod_drivers::Mode::MOTOR_BOARD}};
 
-    // Monopod startup/
-    monopod_drivers::Monopod monopod;
-    monopod.initialize();
-    monopod.start_loop();
-    // rt_printf("loops have started \n");
-    double x = 0;
+  if (!get_mode.count(mode_name)) {
+    std::cerr << "Provided mode '" << mode_name
+              << "' not valid.\n"
+                 "\t Mode - Available monopod modes 'fixed', 'fixed_connector',"
+                 " 'free', 'motor_board'."
+              << std::endl;
+    exit(-1);
+  }
 
+  monopod_drivers::Mode mode = monopod_drivers::Mode::MOTOR_BOARD;
 
-    while (!StopDemos)
-    {
-        // real_time_tools::Timer::sleep_sec(1);
+  monopod_drivers::Monopod monopod;
+  rt_printf("initialized monopod sdk \n");
+  monopod.initialize(mode);
+  monopod.start_loop();
 
-        // // Get data from monopod. The model inputs are in the following
-        // // order: hip_joint, knee_joint, planarizer_pitch_joint,
-        // // planarizer_yaw_joint, boom_connector_joint
-        std::vector<double> vels = monopod.get_velocities().value();
-        std::vector<double> poss = monopod.get_positions().value();
-        std::vector<double> input_data = merge(poss, vels);
+  while (!StopDemos) {
 
-        // Create inputs for model
-        std::vector<torch::jit::IValue> inputs;
-        torch::Tensor input_data = torch::from_blob(input_data.data(), {input_data.size()}).to(torch::kInt64);
-       
-        // inputs.push_back(input_data);
-        // inputs.push_back(torch::ones({1, 8}));
+    // This does the same thing as [*poss, *vels]
+    auto input_data = boost::copy_range<std::vector<double>>(boost::join(
+        monopod.get_positions().value(), monopod.get_velocities().value()));
 
-        // Print output of model
-        auto output = policy_net.forward(inputs);
-        // std::cout << output.slice(/*dim=*/1, /*start=*/0, /*end=*/5) << '\n';   
-        std::cout << output;
-        /**
-         * TODO: Set and send ouput torques to the robot
-         */
-    }
+    // // Create inputs for model
+    // std::vector<torch::jit::IValue> inputs;
+    // torch::Tensor input_data =
+    //     torch::from_blob(input_data.data(), {input_data.size()})
+    //         .to(torch::kInt64);
+    //
+    // // Print output of model
+    // auto output = policy_net.forward(inputs);
+    // // std::cout << output.slice(/*dim=*/1, /*start=*/0, /*end=*/5) << '\n';
+    // std::cout << output;
 
-    return 0;
+    /**
+     * TODO: Set and send ouput torques to the robot
+     * TODO: Need to guarntee the outputs and inputs to the model have the same
+     * form as expected.
+     */
+  }
+
+  return 0;
 }
