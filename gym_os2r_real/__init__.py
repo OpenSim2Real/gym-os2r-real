@@ -11,9 +11,9 @@ from gym_os2r.rewards import StandingV3
 register(
     id = 'Real-monopod-stand-v1',
     entry_point = 'gym_os2r_real.runtimes.realtime_runtime:RealTimeRuntime',
-    max_episode_steps = 10,
+    max_episode_steps = 100000,
     kwargs={'task_cls': tasks.monopod.MonopodTask,
-            'agent_rate': 1,
+            'agent_rate': 1000,
             'task_mode': 'free_hip',
             'reward_class': StandingV3,
             'reset_positions': ['ground']

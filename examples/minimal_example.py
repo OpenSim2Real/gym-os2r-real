@@ -5,7 +5,8 @@ from gym_ignition.utils import logger
 
 
 # Set verbosity
-logger.set_level(gym.logger.ERROR)
+# logger.set_level(gym.logger.ERROR)
+logger.set_level(gym.logger.WARN)
 
 # Available tasks
 env_id = "Real-monopod-stand-v1"
@@ -18,12 +19,13 @@ for epoch in range(1000):
 
     # Initialize returned values
     done = False
-    totalReward = 0
-
+    count = 0
     while not done:
         action = env.action_space.sample()
         observation, reward, done, _ = env.step(action)
-        print("action here.")
+        count += 1
+        if (count % 1000 == 0):
+            print("%d Second.", count/1000)
 
 env.close()
 time.sleep(5)

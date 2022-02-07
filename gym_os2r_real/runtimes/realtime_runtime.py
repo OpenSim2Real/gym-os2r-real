@@ -74,8 +74,8 @@ class RealTimeRuntime(runtime.Runtime):
 
         # TODO: check real time loop speed to make sure it is possible.
         if not self.spinner.wait():
-            logger.warn("Realtime_Runtime missed Realtime controller rate. \
-            Make sure that the agent_rate is suitable for realtime guarntee.")
+            logger.warn("Realtime_Runtime missed Realtime controller rate. "
+            "Make sure that the agent_rate is suitable for realtime guarntee.")
 
         # Get the observation
         observation = self.task.get_observation()
@@ -86,7 +86,6 @@ class RealTimeRuntime(runtime.Runtime):
 
         # Get the reward
         reward = self.task.get_reward()
-        assert reward, "Failed to get the reward"
 
         # Check termination
         done = self.task.is_done()
@@ -98,9 +97,9 @@ class RealTimeRuntime(runtime.Runtime):
         # Reset the task
         self.task.reset_task()
 
-        # # TODO: add pause (for manual reset)
-        # Wait for external input before continuing.
-        input("Press Enter when robot is in its reset position...")
+        # # # TODO: add pause (for manual reset)
+        # # Wait for external input before continuing.
+        # input("Press Enter when robot is in its reset position...")
 
         # Get the observation
         observation = self.task.get_observation()
@@ -112,6 +111,7 @@ class RealTimeRuntime(runtime.Runtime):
 
         # Spin here to avoid warning in step.
         self.spinner.wait()
+
         return Observation(observation)
 
     def render(self, mode: str = "human", **kwargs) -> None:
@@ -134,7 +134,10 @@ class RealTimeRuntime(runtime.Runtime):
         "fixed_hip" : scenario.Mode_fixed_connector,
         "fixed" : scenario.Mode_fixed
         }
-        world.initialize(modes[self.task_mode])
+
+        # TODO: Remove the dummy mode
+        world.initialize(modes[self.task_mode], True)
+        # world.initialize(modes[self.task_mode])
 
         # Set the world in the task
         self.task.world = world
@@ -151,12 +154,15 @@ class RealTimeRuntime(runtime.Runtime):
             return self._model
 
         # Create the model
-        self.task.model_name = self._world.model_names()[0]
-        model = self._world.get_model(task.model_name)
+        model_name = self._world.model_names()[0]
+        model = self._world.get_model(model_name)
 
         # Set the model in the task
         self.task.model = model
-        assert self._model.valid(), "Model is not valid.\n"
+        assert model.valid(), "Model is not valid."
+
+        # Set the model name in the task.
+        self.task.model_name = model.name()
 
         # TODO: Set joint limits here.
 
@@ -167,7 +173,7 @@ class RealTimeRuntime(runtime.Runtime):
         #     joint.set_joint_velocity_limit(max, min)
 
         # Store the model in runtime
-        
+
         self._model = model
 
         return self._model

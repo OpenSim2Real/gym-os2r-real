@@ -74,14 +74,22 @@ int main(int argc, char *argv[]) {
 
   monopod_drivers::Monopod monopod;
   rt_printf("initialized monopod sdk \n");
-  monopod.initialize(mode);
+  monopod.initialize(mode, true);
   monopod.start_loop();
+
+  real_time_tools::Spinner time_spinner;
+  time_spinner.set_period(0.001); // 1kz loop
 
   while (!StopDemos) {
 
     // This does the same thing as [*poss, *vels]
     auto input_data = boost::copy_range<std::vector<double>>(boost::join(
         monopod.get_positions().value(), monopod.get_velocities().value()));
+
+    // for (auto data : input_data) {
+    //   std::cout << data;
+    // }
+    // std::cout << std::endl;
 
     // // Create inputs for model
     // std::vector<torch::jit::IValue> inputs;
@@ -99,6 +107,8 @@ int main(int argc, char *argv[]) {
      * TODO: Need to guarntee the outputs and inputs to the model have the same
      * form as expected.
      */
+
+    time_spinner.spin();
   }
 
   return 0;
