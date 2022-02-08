@@ -21,11 +21,11 @@ for epoch in range(1000):
     done = False
     count = 0
     while not done:
-        action = env.action_space.sample()
+        action = env.action_space.sample() * 0.1
         observation, reward, done, _ = env.step(action)
         count += 1
         if (count % 1000 == 0):
-            print("%d Second.", count/1000)
+            print("Second.", count/1000)
 
 env.close()
 time.sleep(5)

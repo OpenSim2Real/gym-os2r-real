@@ -4,9 +4,12 @@ from gym_ignition.utils import logger
 
 from scenario import monopod as scenario
 import real_time_tools as rt
-
 import numpy as np
+import time
 
+import sys
+def eprint(*args, **kwargs):
+    print('\033[93m',"[Warn] ", *args, '\033[0m', file=sys.stderr, **kwargs)
 
 class RealTimeRuntime(runtime.Runtime):
     """
@@ -72,17 +75,25 @@ class RealTimeRuntime(runtime.Runtime):
         ok_action = self.task.set_action(action)
         assert ok_action, "Failed to set the action"
 
+
+        # time.sleep(1)
         # TODO: check real time loop speed to make sure it is possible.
         if not self.spinner.wait():
-            logger.warn("Realtime_Runtime missed Realtime controller rate. "
-            "Make sure that the agent_rate is suitable for realtime guarntee.")
+            eprint("Realtime_Runtime missed Realtime controller rate. "
+            "Make sure that the agent_rate is suitable for realtime schedule.")
 
         # Get the observation
         observation = self.task.get_observation()
-        assert self.observation_space.contains(observation), "%r (%s) invalid" % (
-            observation,
-            type(observation),
-        )
+
+        # Todo: make sure we do not want to assert here.
+
+        # assert self.observation_space.contains(observation), "%r (%s) invalid" % (
+        #     observation,
+        #     type(observation),
+        # )
+
+        if not self.observation_space.contains(observation):
+            eprint("The observation does not belong to the observation space")
 
         # Get the reward
         reward = self.task.get_reward()
@@ -90,12 +101,18 @@ class RealTimeRuntime(runtime.Runtime):
         # Check termination
         done = self.task.is_done()
 
+        # Verify robot is not in safemode.
+        done = done or not self.model.valid()
+
         return State((observation, reward, Done(done), Info({})))
 
     def reset(self) -> Observation:
 
         # Reset the task
         self.task.reset_task()
+
+        # Resets safemode, goes to zero, sets control to zero
+        scenario.ToMonopodModel(self.model).reset()
 
         # # # TODO: add pause (for manual reset)
         # # Wait for external input before continuing.
@@ -106,10 +123,10 @@ class RealTimeRuntime(runtime.Runtime):
         assert isinstance(observation, np.ndarray)
 
         if not self.observation_space.contains(observation):
-            logger.warn(
-                "The observation does not belong to the observation space")
+            eprint("The observation does not belong to the observation space")
 
         # Spin here to avoid warning in step.
+
         self.spinner.wait()
 
         return Observation(observation)
@@ -119,6 +136,18 @@ class RealTimeRuntime(runtime.Runtime):
 
     def close(self) -> None:
         raise NotImplementedError
+
+    def get_state_info(self, state: Observation, action: Action):
+        return self.task.get_state_info(state, action)
+
+    def calibrate(self):
+        # 1. Place the robot boom on a custom stand. Fixes the Planarizer pitch joint
+        # 2. Ensure all non-actuated joints are in the fixed consistent location - This is especially important for the pelvis joint.
+        # 3. Calibrate Leg with no offset (finds the first index and sets it to be new zero) Note: (make sure the leg is close to straight).
+        # 4. Use jig to hold robot knee and hip joints at proper zero and record the position of the hip and knee. This will then be the new offset used during calibration.
+        # 5. Run calibration again with new offset values (make sure the leg is close to straight).
+        # 6. Values will not change unless the robot has been changed mechanically (encoders rotated etc).
+        scenario.ToMonopodModel(self._model).calibrate(0 , 0)
 
     @property
     def world(self) -> scenario.World:
@@ -130,9 +159,9 @@ class RealTimeRuntime(runtime.Runtime):
         # Create the world
         world = scenario.World()
         modes = {
-        "free_hip" : scenario.Mode_free,
-        "fixed_hip" : scenario.Mode_fixed_connector,
-        "fixed" : scenario.Mode_fixed
+            "free_hip" : scenario.Mode_free,
+            "fixed_hip" : scenario.Mode_fixed_connector,
+            "fixed" : scenario.Mode_fixed
         }
 
         # TODO: Remove the dummy mode
@@ -159,10 +188,13 @@ class RealTimeRuntime(runtime.Runtime):
 
         # Set the model in the task
         self.task.model = model
-        assert model.valid(), "Model is not valid."
+        assert model.valid(), "Model is not in a valid state on initialization."
 
         # Set the model name in the task.
         self.task.model_name = model.name()
+
+        # Store the model in runtime
+        self._model = model
 
         # TODO: Set joint limits here.
 
@@ -172,8 +204,8 @@ class RealTimeRuntime(runtime.Runtime):
         #     joint.set_joint_position_limit(max, min)
         #     joint.set_joint_velocity_limit(max, min)
 
-        # Store the model in runtime
+        # Calibrate the model. This will launch the calibration sequence.
 
-        self._model = model
+        self.calibrate()
 
         return self._model
