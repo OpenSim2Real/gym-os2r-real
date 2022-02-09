@@ -26,6 +26,13 @@ world.initialize(scenario.Mode_motor_board)
 model_name = world.model_names()[0]
 model = world.get_model(model_name)
 
+for joint in model.joints():
+    # name = joint.name()
+    max = 1.57
+    min = -1.57
+    scenario.ToMonopodJoint(joint).set_joint_position_limit(max, min)
+    # scenario.ToMonopodJoint(joint).set_joint_velocity_limit(max, min)
+
 print(f'{bcolors.OKGREEN}Successfully established connection to robot. {bcolors.ENDC}')
 # print('To exit type exit at any input.')
 input(f'{bcolors.OKBLUE}Press enter when robot is safe to move. {bcolors.ENDC}')

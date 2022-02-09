@@ -197,17 +197,12 @@ class RealTimeRuntime(runtime.Runtime):
         self._model = model
 
         # TODO: Set joint limits here.
-        # for joint in self._model.joints():
-        #     name = joint.name()
-        #
-        #     joint.set_joint_position_limit(max, min)
-        #     joint.set_joint_velocity_limit(max, min)
 
-        # Calibrate the model. This will launch the calibration sequence.
-        # Todo: might turn this into standard monopod sdk calibration such that
-        # You provide the offset into the kwargs? Then you need to do a
-        # calibration stage first then simply store values into script.
-
-        self.calibrate()
+        for joint in model.joints():
+            # name = joint.name()
+            max = 0.9
+            min = -0.9
+            scenario.ToMonopodJoint(joint).set_joint_position_limit(max, min)
+            # scenario.ToMonopodJoint(joint).set_joint_velocity_limit(max, min)
 
         return self._model
