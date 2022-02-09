@@ -109,7 +109,10 @@ class RealTimeRuntime(runtime.Runtime):
         # Reset the task
         self.task.reset_task()
 
+        # Todo: Reset moves the robot to zero position. Make sure this is known
+        # and that the user is ready for it
         input("Press enter when at 0")
+
         # Resets safemode, goes to zero, sets control to zero
         scenario.ToMonopodModel(self.model).reset()
 
@@ -196,8 +199,8 @@ class RealTimeRuntime(runtime.Runtime):
         # Store the model in runtime
         self._model = model
 
-        # TODO: Set joint limits here.
-
+        # TODO: Set joint limits here from the config file. This should match
+        # the gym_os2r configs for each task_mode
         for joint in model.joints():
             # name = joint.name()
             max = 0.9

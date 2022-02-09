@@ -25,8 +25,8 @@ for epoch in range(1000):
         action = env.action_space.sample() * 0.1
         observation, reward, done, _ = env.step(action)
         count += 1
-        if (count % 1000 == 0):
-            print("Second.", count/1000)
+        if (count % env.agent_rate == 0):
+            print("Second.", count/env.agent_rate)
 
 env.close()
 time.sleep(5)
