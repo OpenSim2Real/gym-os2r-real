@@ -75,8 +75,6 @@ class RealTimeRuntime(runtime.Runtime):
         ok_action = self.task.set_action(action)
         assert ok_action, "Failed to set the action"
 
-
-        # time.sleep(1)
         # TODO: check real time loop speed to make sure it is possible.
         if not self.spinner.wait():
             eprint("Realtime_Runtime missed Realtime controller rate. "
@@ -111,6 +109,7 @@ class RealTimeRuntime(runtime.Runtime):
         # Reset the task
         self.task.reset_task()
 
+        input("Press enter when at 0")
         # Resets safemode, goes to zero, sets control to zero
         scenario.ToMonopodModel(self.model).reset()
 
@@ -161,12 +160,13 @@ class RealTimeRuntime(runtime.Runtime):
         modes = {
             "free_hip" : scenario.Mode_free,
             "fixed_hip" : scenario.Mode_fixed_connector,
-            "fixed" : scenario.Mode_fixed
+            "fixed" : scenario.Mode_fixed,
+            "simple" : scenario.Mode_motor_board
         }
 
         # TODO: Remove the dummy mode
-        world.initialize(modes[self.task_mode], True)
-        # world.initialize(modes[self.task_mode])
+        world.initialize(modes[self.task_mode])
+        # world.initialize(modes[self.task_mode], True)
 
         # Set the world in the task
         self.task.world = world
@@ -197,7 +197,6 @@ class RealTimeRuntime(runtime.Runtime):
         self._model = model
 
         # TODO: Set joint limits here.
-
         # for joint in self._model.joints():
         #     name = joint.name()
         #
@@ -205,6 +204,9 @@ class RealTimeRuntime(runtime.Runtime):
         #     joint.set_joint_velocity_limit(max, min)
 
         # Calibrate the model. This will launch the calibration sequence.
+        # Todo: might turn this into standard monopod sdk calibration such that
+        # You provide the offset into the kwargs? Then you need to do a
+        # calibration stage first then simply store values into script.
 
         self.calibrate()
 

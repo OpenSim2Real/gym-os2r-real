@@ -6,7 +6,8 @@ from gym_ignition.utils import logger
 
 # Set verbosity
 # logger.set_level(gym.logger.ERROR)
-logger.set_level(gym.logger.WARN)
+# logger.set_level(gym.logger.WARN)
+logger.set_level(gym.logger.DEBUG)
 
 # Available tasks
 env_id = "Real-monopod-stand-v1"
