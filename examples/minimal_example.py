@@ -13,7 +13,7 @@ logger.set_level(gym.logger.DEBUG)
 env_id = "Real-monopod-simple-v1"
 
 env = gym.make(env_id)
-for epoch in range(1000):
+for epoch in range(2):
 
     # Reset the environment
     observation = env.reset()
