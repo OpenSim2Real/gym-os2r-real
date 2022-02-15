@@ -111,7 +111,7 @@ class RealTimeRuntime(runtime.Runtime):
 
         # Todo: Reset moves the robot to zero position. Make sure this is known
         # and that the user is ready for it
-        input("Press enter when at 0")
+        input("Press enter when monopod is safe to move back to home.\n")
 
         # Resets safemode, goes to zero, sets control to zero
         scenario.ToMonopodModel(self.model).reset()
@@ -127,8 +127,10 @@ class RealTimeRuntime(runtime.Runtime):
         if not self.observation_space.contains(observation):
             eprint("The observation does not belong to the observation space")
 
-        # Spin here to avoid warning in step.
 
+        input("Press enter when robot is safe to move.\n")
+
+        # Spin here to avoid warning in step.
         self.spinner.wait()
 
         return Observation(observation)
