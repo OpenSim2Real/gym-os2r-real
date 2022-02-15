@@ -10,7 +10,7 @@ from gym_ignition.utils import logger
 logger.set_level(gym.logger.DEBUG)
 
 # Available tasks
-env_id = "Real-monopod-stand-v1"
+env_id = "Real-monopod-simple-v1"
 
 env = gym.make(env_id)
 for epoch in range(1000):

@@ -205,8 +205,8 @@ class RealTimeRuntime(runtime.Runtime):
         # the gym_os2r configs for each task_mode
         for joint in model.joints():
             # name = joint.name()
-            max = 0.9
-            min = -0.9
+            max = 1.57
+            min = -1.57
             scenario.ToMonopodJoint(joint).set_joint_position_limit(max, min)
             # scenario.ToMonopodJoint(joint).set_joint_velocity_limit(max, min)
 
