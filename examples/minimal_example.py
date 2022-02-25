@@ -22,7 +22,8 @@ for epoch in range(2):
     done = False
     count = 0
     while not done:
-        action = env.action_space.sample() * 0.1
+        # action = env.action_space.sample()
+        action = [0, -1]
         observation, reward, done, _ = env.step(action)
         count += 1
         if (count % env.agent_rate == 0):

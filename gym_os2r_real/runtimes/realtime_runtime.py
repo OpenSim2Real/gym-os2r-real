@@ -50,6 +50,8 @@ class RealTimeRuntime(runtime.Runtime):
         self.task.observation_space = self.observation_space
 
         self.spinner = rt.FrequencyManager(agent_rate)  # real time spinner.
+        self.missed_rt = 0
+        self.steps_elapsed = 0
 
     # =================
     # Runtime interface
@@ -76,9 +78,8 @@ class RealTimeRuntime(runtime.Runtime):
         assert ok_action, "Failed to set the action"
 
         # TODO: check real time loop speed to make sure it is possible.
-        if not self.spinner.wait():
-            eprint("Realtime_Runtime missed Realtime controller rate. "
-            "Make sure that the agent_rate is suitable for realtime schedule.")
+        self.missed_rt = self.missed_rt  - self.spinner.wait() + 1
+        self.steps_elapsed = self.steps_elapsed + 1
 
         # Get the observation
         observation = self.task.get_observation()
@@ -106,6 +107,15 @@ class RealTimeRuntime(runtime.Runtime):
 
     def reset(self) -> Observation:
 
+        if self.missed_rt:
+            eprint(f"Realtime_Runtime missed Realtime {self.agent_rate} Hz controller rate."
+            f" The real time controller missed '{self.missed_rt}' steps over "
+            f" {self.steps_elapsed} steps. This means {self.missed_rt/self.steps_elapsed *100:.2f}%"
+            " of steps failed to maintain schedule. Make sure that the agent_rate is suitable"
+            " for realtime schedule.")
+
+        self.steps_elapsed = 0
+        self.missed_rt = 0
         # Reset the task
         self.task.reset_task()
 
@@ -205,8 +215,8 @@ class RealTimeRuntime(runtime.Runtime):
         # the gym_os2r configs for each task_mode
         for joint in model.joints():
             # name = joint.name()
-            max = 1.57
-            min = -1.57
+            max = 3.14
+            min = -3.14
             scenario.ToMonopodJoint(joint).set_joint_position_limit(max, min)
             # scenario.ToMonopodJoint(joint).set_joint_velocity_limit(max, min)
 
