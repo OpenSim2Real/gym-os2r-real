@@ -17,7 +17,7 @@
 # -- Project information -----------------------------------------------------
 from datetime import datetime
 
-project = "gym-os2r"
+project = "gym-os2r-real"
 copyright = f"{datetime.now().year}, University of British Columbia"
 author = "Dawson Horvath"
 
@@ -67,7 +67,7 @@ html_theme = "sphinx_book_theme"
 # further.  For a list of options available for each theme, see the
 # documentation.
 html_theme_options = {
-    "repository_url": "https://github.com/OpenSim2Real/gym-os2r",
+    "repository_url": "https://github.com/OpenSim2Real/gym-os2r-real",
     "use_repository_button": True,
     "use_issues_button": True,
     "use_edit_page_button": True,
@@ -96,7 +96,7 @@ todo_include_todos = True
 
 # -- Options for breathe extension ----------------------------------------------
 
-breathe_default_project = "gym-os2r"
+breathe_default_project = "gym-os2r-real"
 
 # -- Options for sphinx_multiversion extension ----------------------------------
 
