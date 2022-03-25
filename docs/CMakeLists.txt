@@ -1,1 +1,1 @@
-# add_subdirectory(sphinx)
+add_subdirectory(sphinx)
