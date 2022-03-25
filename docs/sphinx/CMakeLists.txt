@@ -10,9 +10,9 @@ add_custom_target( apidoc ALL
     ${SPHINX_APIDOC_EXECUTABLE} --force
     --no-toc --module-first --maxdepth 4
     -t ${CMAKE_CURRENT_SOURCE_DIR}/_templates
-    -o ${SPHINX_SOURCE}/gym-os2r_docs/python/gym-os2r
-    ${MODULE_PATH}/gym_os2r
-    COMMENT "Building <gym-os2r> apidoc")
+    -o ${SPHINX_SOURCE}/gym-os2r-real_docs/python/gym-os2r-real
+    ${MODULE_PATH}/gym_os2r_real
+  COMMENT "Building <gym-os2r-real> apidoc")
 
 find_package(Sphinx REQUIRED)
 find_package(SphinxMultiVersion REQUIRED)
@@ -22,13 +22,13 @@ find_package(SphinxMultiVersion REQUIRED)
 # =============
 add_custom_target(source_rst_copy ALL
     DEPENDS apidoc
-    COMMAND ${CMAKE_COMMAND} -E copy_directory "${SPHINX_SOURCE}/gym-os2r_docs" "${SPHINX_BUILD}/sphinx_build/gym-os2r_docs"
+    COMMAND ${CMAKE_COMMAND} -E copy_directory "${SPHINX_SOURCE}/gym-os2r-real_docs" "${SPHINX_BUILD}/sphinx_build/gym-os2r-real_docs"
     COMMENT "copy source doc build files."
   )
 
 add_custom_target(index_copy ALL
     DEPENDS apidoc
-    COMMAND ${CMAKE_COMMAND} -E copy "${SPHINX_SOURCE}/index.rst" "${SPHINX_BUILD}/sphinx_build/gym-os2r_index.rst"
+    COMMAND ${CMAKE_COMMAND} -E copy "${SPHINX_SOURCE}/index.rst" "${SPHINX_BUILD}/sphinx_build/gym-os2r-real_index.rst"
     COMMENT "copy index rst."
   )
 
@@ -38,7 +38,7 @@ add_custom_target(index_copy ALL
 
 IF(NOT BUILD_DOCS_SUPERBUILD)
     # Extend the Python path including before generating the website
-    message(STATUS "Python paths for gym-os2r build: ${PYTHONPATHS}")
+    message(STATUS "Python paths for gym-os2r-real build: ${PYTHONPATHS}")
     set(SPHINX_CMD ${CMAKE_COMMAND} -E env PYTHONPATH="${PYTHONPATHS}")
 
     # Sphinx build command
